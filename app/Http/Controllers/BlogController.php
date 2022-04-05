@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BlogController extends Controller
 {
@@ -14,7 +15,10 @@ class BlogController extends Controller
      */
     public function index()
     {
-        //
+        $blogs = Blog::all();
+        // return view('Blogs.index', compact('blogs'));
+        // return view('Blogs.index', ['blogs' => $blogs]);
+        return view('Blogs.index')->with('blogs', $blogs);
     }
 
     /**
@@ -24,7 +28,7 @@ class BlogController extends Controller
      */
     public function create()
     {
-        //
+        return view('Blogs.create');
     }
 
     /**
@@ -35,18 +39,27 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $blog = new Blog;
+        $blog->title = $request->input('title');
+        $blog->description = $request->input('description');
+        $blog->image = $request->input('image');
+        $blog->user_id = Auth::id();
+        $blog->save();
+
+        return redirect()->route('blogs.show', $blog->id);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Blog  $blog
+     * @param  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Blog $blog)
+    public function show($id)
     {
-        //
+        $blog = Blog::find($id);
+        $author = $blog->author;
+        return view('Blogs.show', ['blog' => $blog, 'is_author' => $author->id === Auth::id()]);
     }
 
     /**
@@ -55,9 +68,10 @@ class BlogController extends Controller
      * @param  \App\Models\Blog  $blog
      * @return \Illuminate\Http\Response
      */
-    public function edit(Blog $blog)
+    public function edit($id)
     {
-        //
+        $blog = Blog::find($id);
+        return view('Blogs.edit', ['blog' => $blog]);
     }
 
     /**
@@ -67,9 +81,15 @@ class BlogController extends Controller
      * @param  \App\Models\Blog  $blog
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Blog $blog)
+    public function update(Request $request, $id)
     {
-        //
+        $blog = Blog::find($id);
+        $blog->title = $request->input('title');
+        $blog->description = $request->input('description');
+        $blog->image = $request->input('image');
+        $blog->save();
+
+        return redirect()->route('blogs.show', $id);
     }
 
     /**
@@ -78,8 +98,11 @@ class BlogController extends Controller
      * @param  \App\Models\Blog  $blog
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Blog $blog)
+    public function destroy($id)
     {
-        //
+        Blog::destroy($id);
+        // $blog = Blog::find($id);
+        // $blog->delete();
+        return redirect()->route('home');
     }
 }
